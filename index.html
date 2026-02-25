@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="pt-PT">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard de Execução Tática</title>
+    <title>Centro de Comando | Diplomata & Atleta</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <script>
@@ -11,21 +11,21 @@
             theme: {
                 extend: {
                     colors: {
-                        dark: '#0f172a',
+                        dark: '#0b1120',
                         card: '#1e293b',
                         accent: '#3b82f6',
                         success: '#10b981',
-                        warning: '#f59e0b',
-                        danger: '#ef4444'
+                        pilar1: '#3b82f6', /* Azul - Carreira/Diplomacia */
+                        pilar2: '#f59e0b', /* Dourado - Ouro Handebol */
+                        pilar3: '#8b5cf6'  /* Roxo - Conteúdo RI */
                     }
                 }
             }
         }
     </script>
     <style>
-        /* Custom scrollbar for table */
         ::-webkit-scrollbar { width: 8px; height: 8px; }
-        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-track { background: #0b1120; }
         ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #475569; }
         
@@ -38,7 +38,7 @@
             width: 1.5em;
             height: 1.5em;
             border: 2px solid #475569;
-            border-radius: 0.25em;
+            border-radius: 0.3em;
             display: grid;
             place-content: center;
             cursor: pointer;
@@ -50,96 +50,185 @@
             height: 0.85em;
             transform: scale(0);
             transition: 120ms transform ease-in-out;
-            box-shadow: inset 1em 1em #10b981;
-            background-color: #10b981;
+            box-shadow: inset 1em 1em white;
+            background-color: white;
             transform-origin: center;
             clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
         }
         .checkbox-custom:checked::before {
             transform: scale(1);
         }
-        .checkbox-custom:checked {
-            border-color: #10b981;
-        }
+        /* Cores dinâmicas para cada pilar */
+        .check-pilar1:checked { border-color: #3b82f6; background-color: #3b82f6; }
+        .check-pilar2:checked { border-color: #f59e0b; background-color: #f59e0b; }
+        .check-pilar3:checked { border-color: #8b5cf6; background-color: #8b5cf6; }
     </style>
 </head>
-<body class="bg-dark text-gray-200 font-sans min-h-screen flex flex-col">
+<body class="bg-dark text-gray-200 font-sans min-h-screen flex flex-col selection:bg-accent selection:text-white">
 
     <!-- Navbar -->
-    <nav class="bg-card border-b border-gray-700 p-4 shadow-lg sticky top-0 z-10">
-        <div class="max-w-7xl mx-auto flex justify-between items-center">
+    <nav class="bg-card border-b border-gray-800 p-4 shadow-lg sticky top-0 z-20">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
             <div class="flex items-center space-x-3">
-                <i class="fas fa-chess-knight text-accent text-2xl"></i>
-                <h1 class="text-xl font-bold tracking-wider uppercase text-white">Protocolo de Execução</h1>
+                <i class="fas fa-globe-americas text-pilar1 text-2xl"></i>
+                <h1 class="text-xl font-bold tracking-wider uppercase text-white">Centro de Comando Tático</h1>
             </div>
-            <div class="flex space-x-4">
+            <div class="flex space-x-3">
                 <button onclick="exportCSV()" class="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-md text-sm font-medium transition flex items-center space-x-2">
-                    <i class="fas fa-file-export"></i> <span>Exportar CSV</span>
+                    <i class="fas fa-file-csv"></i> <span>Exportar Planilha</span>
                 </button>
-                <button onclick="clearData()" class="bg-danger/20 text-danger hover:bg-danger/30 px-4 py-2 rounded-md text-sm font-medium transition flex items-center space-x-2">
-                    <i class="fas fa-trash-alt"></i> <span>Reiniciar</span>
+                <button onclick="clearData()" class="bg-red-500/20 text-red-400 hover:bg-red-500/30 px-4 py-2 rounded-md text-sm font-medium transition flex items-center space-x-2">
+                    <i class="fas fa-redo"></i> <span>Reiniciar Mês</span>
                 </button>
             </div>
         </div>
     </nav>
 
-    <!-- Main Content -->
-    <main class="flex-grow p-4 md:p-8 max-w-7xl mx-auto w-full space-y-8">
+    <main class="flex-grow p-4 md:p-6 max-w-7xl mx-auto w-full space-y-6">
         
-        <!-- Header Stats -->
+        <!-- Cartões de Progresso (KPIs) -->
         <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div class="bg-card p-6 rounded-xl border border-gray-700 shadow-md">
-                <h3 class="text-gray-400 text-sm font-semibold uppercase tracking-wider mb-2">Taxa de Sucesso (Mês)</h3>
+            <!-- Consistência Geral -->
+            <div class="bg-card p-5 rounded-xl border border-gray-700 shadow-md flex flex-col justify-center">
+                <h3 class="text-gray-400 text-xs font-semibold uppercase tracking-wider mb-2">Desempenho Global</h3>
                 <div class="flex items-end space-x-2">
                     <span id="score-total" class="text-4xl font-bold text-white">0%</span>
                 </div>
-                <div class="w-full bg-gray-700 rounded-full h-2 mt-4">
-                    <div id="progress-bar" class="bg-accent h-2 rounded-full transition-all duration-500" style="width: 0%"></div>
+                <div class="w-full bg-gray-700 rounded-full h-2 mt-3 overflow-hidden">
+                    <div id="progress-bar" class="bg-success h-full transition-all duration-500" style="width: 0%"></div>
                 </div>
             </div>
             
-            <div class="bg-card p-6 rounded-xl border border-gray-700 shadow-md">
-                <h3 class="text-gray-400 text-sm font-semibold uppercase tracking-wider mb-2">Pilar 1: Estudos</h3>
-                <div class="text-2xl font-bold text-white"><span id="score-estudos">0</span>/30 dias</div>
-                <p class="text-xs text-gray-500 mt-1"><i class="fas fa-book mr-1"></i> Blocos de Foco Completos</p>
+            <!-- Pilar 1 -->
+            <div class="bg-card p-5 rounded-xl border-t-4 border-pilar1 shadow-md">
+                <div class="flex justify-between items-start">
+                    <h3 class="text-pilar1 text-xs font-bold uppercase tracking-wider mb-1">Pilar 1</h3>
+                    <i class="fas fa-landmark text-pilar1 opacity-50"></i>
+                </div>
+                <h4 class="text-white font-bold text-lg leading-tight mb-2">Carreira & Rio Branco</h4>
+                <div class="text-3xl font-bold text-white mb-1"><span id="score-p1">0</span><span class="text-sm text-gray-500 font-normal">/30 d</span></div>
             </div>
 
-            <div class="bg-card p-6 rounded-xl border border-gray-700 shadow-md">
-                <h3 class="text-gray-400 text-sm font-semibold uppercase tracking-wider mb-2">Pilar 2: Criativo</h3>
-                <div class="text-2xl font-bold text-white"><span id="score-criativo">0</span>/30 dias</div>
-                <p class="text-xs text-gray-500 mt-1"><i class="fas fa-pen-nib mr-1"></i> Sessões de Escrita/RPG</p>
+            <!-- Pilar 2 -->
+            <div class="bg-card p-5 rounded-xl border-t-4 border-pilar2 shadow-md">
+                <div class="flex justify-between items-start">
+                    <h3 class="text-pilar2 text-xs font-bold uppercase tracking-wider mb-1">Pilar 2</h3>
+                    <i class="fas fa-medal text-pilar2 opacity-50"></i>
+                </div>
+                <h4 class="text-white font-bold text-lg leading-tight mb-2">Handebol & Saúde</h4>
+                <div class="text-3xl font-bold text-white mb-1"><span id="score-p2">0</span><span class="text-sm text-gray-500 font-normal">/30 d</span></div>
             </div>
 
-            <div class="bg-card p-6 rounded-xl border border-gray-700 shadow-md">
-                <h3 class="text-gray-400 text-sm font-semibold uppercase tracking-wider mb-2">Pilar 3: Rotina</h3>
-                <div class="text-2xl font-bold text-white"><span id="score-rotina">0</span>/30 dias</div>
-                <p class="text-xs text-gray-500 mt-1"><i class="fas fa-dumbbell mr-1"></i> Treino & Sono Regulado</p>
+            <!-- Pilar 3 -->
+            <div class="bg-card p-5 rounded-xl border-t-4 border-pilar3 shadow-md">
+                <div class="flex justify-between items-start">
+                    <h3 class="text-pilar3 text-xs font-bold uppercase tracking-wider mb-1">Pilar 3</h3>
+                    <i class="fas fa-bullhorn text-pilar3 opacity-50"></i>
+                </div>
+                <h4 class="text-white font-bold text-lg leading-tight mb-2">Conteúdo RI</h4>
+                <div class="text-3xl font-bold text-white mb-1"><span id="score-p3">0</span><span class="text-sm text-gray-500 font-normal">/30 d</span></div>
             </div>
         </div>
 
-        <!-- Spreadsheet Area -->
-        <div class="bg-card rounded-xl border border-gray-700 shadow-xl overflow-hidden flex flex-col">
-            <div class="p-5 border-b border-gray-700 flex justify-between items-center bg-gray-800">
-                <h2 class="text-lg font-bold text-white flex items-center">
-                    <i class="fas fa-calendar-alt text-accent mr-3"></i> Rastreador Diário (Sprint de 30 Dias)
+        <!-- NOVO: Submetas de Execução (O que precisa ser feito) -->
+        <div class="bg-card p-5 rounded-xl border border-gray-700 shadow-md">
+            <h2 class="text-md font-bold text-white mb-4 flex items-center">
+                <i class="fas fa-crosshairs text-gray-400 mr-2"></i> Submetas Táticas (Foco dos próximos 6 meses)
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                
+                <!-- Submetas Pilar 1 -->
+                <div>
+                    <h3 class="text-pilar1 font-bold mb-3 border-b border-gray-700 pb-2 flex items-center">
+                        <i class="fas fa-chevron-right text-xs mr-2 opacity-50"></i> Alvos do Pilar 1
+                    </h3>
+                    <ul class="text-sm text-gray-300 space-y-2">
+                        <li class="flex items-start"><i class="fas fa-check-circle text-pilar1/50 mt-1 mr-2"></i> <span><strong>Vida Financeira:</strong> Negociar/Parcelar a dívida do Serasa e buscar estágio (se o concurso não chamar).</span></li>
+                        <li class="flex items-start"><i class="fas fa-check-circle text-pilar1/50 mt-1 mr-2"></i> <span><strong>Base Acadêmica:</strong> Fichar as disciplinas da UFF já com o olhar na ementa do edital do CACD.</span></li>
+                        <li class="flex items-start"><i class="fas fa-check-circle text-pilar1/50 mt-1 mr-2"></i> <span><strong>Idiomas:</strong> Consumo ativo de Inglês (rumo ao avançado) + iniciar base para 3º idioma.</span></li>
+                    </ul>
+                </div>
+
+                <!-- Submetas Pilar 2 -->
+                <div>
+                    <h3 class="text-pilar2 font-bold mb-3 border-b border-gray-700 pb-2 flex items-center">
+                        <i class="fas fa-chevron-right text-xs mr-2 opacity-50"></i> Alvos do Pilar 2
+                    </h3>
+                    <ul class="text-sm text-gray-300 space-y-2">
+                        <li class="flex items-start"><i class="fas fa-check-circle text-pilar2/50 mt-1 mr-2"></i> <span><strong>Foco Absoluto:</strong> Treinar visando o Ouro nas Humaníadas (07/09) no Handebol.</span></li>
+                        <li class="flex items-start"><i class="fas fa-check-circle text-pilar2/50 mt-1 mr-2"></i> <span><strong>Despromoção Estratégica:</strong> Reduzir a intensidade nos treinos de Basquete e Vôlei para evitar lesões (especialmente quarta-feira).</span></li>
+                        <li class="flex items-start"><i class="fas fa-check-circle text-pilar2/50 mt-1 mr-2"></i> <span><strong>Recuperação:</strong> Garantir sono anabólico e higiene do sono após os treinos que acabam às 23h.</span></li>
+                    </ul>
+                </div>
+
+                <!-- Submetas Pilar 3 -->
+                <div>
+                    <h3 class="text-pilar3 font-bold mb-3 border-b border-gray-700 pb-2 flex items-center">
+                        <i class="fas fa-chevron-right text-xs mr-2 opacity-50"></i> Alvos do Pilar 3
+                    </h3>
+                    <ul class="text-sm text-gray-300 space-y-2">
+                        <li class="flex items-start"><i class="fas fa-check-circle text-pilar3/50 mt-1 mr-2"></i> <span><strong>A Máquina de Sinergia:</strong> 80% do conteúdo criado deve ser documentação do que você estudou para o Rio Branco (Pilar 1).</span></li>
+                        <li class="flex items-start"><i class="fas fa-check-circle text-pilar3/50 mt-1 mr-2"></i> <span><strong>Produção em Lote:</strong> Usar o "Estúdio Criativo" na rotina para gravar/escrever.</span></li>
+                        <li class="flex items-start"><i class="fas fa-check-circle text-pilar3/50 mt-1 mr-2"></i> <span><strong>Consistência Cega:</strong> Manter postagens regulares sem se importar com "likes" iniciais (Foco na autoridade, não em vaidade).</span></li>
+                    </ul>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- O Mapa Diário (Rotina de 24h) -->
+        <div class="bg-card p-5 rounded-xl border border-gray-700 shadow-md">
+            <div class="flex items-center justify-between mb-4 cursor-pointer" onclick="toggleRoutine()">
+                <h2 class="text-md font-bold text-white flex items-center">
+                    <i class="fas fa-clock text-gray-400 mr-2"></i> Mapa de Execução Diária (Rotina)
                 </h2>
-                <span class="text-sm text-gray-400">Regra: Falhar 1 dia é erro. Falhar 2 é hábito.</span>
+                <i class="fas fa-chevron-down text-gray-500 transition-transform" id="routine-icon"></i>
+            </div>
+            <div id="routine-content" class="grid grid-cols-1 md:grid-cols-5 gap-3 text-sm hidden">
+                <div class="bg-dark p-3 rounded border border-gray-700">
+                    <span class="text-gray-400 font-bold block mb-1">07:00 - 13:00</span>
+                    <span class="text-gray-300">Aulas UFF (Foco total. Absorver matérias de RI para o CACD).</span>
+                </div>
+                <div class="bg-pilar1/10 p-3 rounded border border-pilar1/30">
+                    <span class="text-pilar1 font-bold block mb-1">14:30 - 16:30</span>
+                    <span class="text-gray-300">Pilar 1: Estudos profundos CACD, Idiomas e Resolução de Pendências.</span>
+                </div>
+                <div class="bg-pilar3/10 p-3 rounded border border-pilar3/30">
+                    <span class="text-pilar3 font-bold block mb-1">16:30 - 17:30</span>
+                    <span class="text-gray-300">Pilar 3: Escrever/Gravar conteúdos sobre os temas estudados.</span>
+                </div>
+                <div class="bg-pilar2/10 p-3 rounded border border-pilar2/30">
+                    <span class="text-pilar2 font-bold block mb-1">19:00 - 23:00</span>
+                    <span class="text-gray-300">Pilar 2: Treinos da Atlética. Foco Handebol. Gestão de esforço.</span>
+                </div>
+                <div class="bg-success/10 p-3 rounded border border-success/30">
+                    <span class="text-success font-bold block mb-1">23:00 - 06:00</span>
+                    <span class="text-gray-300">Higiene do sono. Zero ecrãs para garantir recuperação muscular.</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Rastreador de Hábitos -->
+        <div class="bg-card rounded-xl border border-gray-700 shadow-xl overflow-hidden flex flex-col">
+            <div class="p-4 border-b border-gray-700 bg-gray-800 flex justify-between items-center">
+                <h2 class="text-md font-bold text-white flex items-center">
+                    <i class="fas fa-tasks text-success mr-2"></i> Execução Diária dos Pilares (Sprint 30 Dias)
+                </h2>
             </div>
             
             <div class="overflow-x-auto">
                 <table class="w-full text-left border-collapse whitespace-nowrap">
                     <thead>
-                        <tr class="bg-gray-800/50 text-gray-400 text-sm uppercase tracking-wider border-b border-gray-700">
-                            <th class="p-4 font-medium w-16 text-center">Dia</th>
-                            <th class="p-4 font-medium"><i class="fas fa-book-open mr-2"></i>Concursos/Estudo</th>
-                            <th class="p-4 font-medium"><i class="fas fa-dice-d20 mr-2"></i>RPG/Criativo</th>
-                            <th class="p-4 font-medium"><i class="fas fa-running mr-2"></i>Atividade Física</th>
-                            <th class="p-4 font-medium"><i class="fas fa-bed mr-2"></i>Sono (7h+)</th>
-                            <th class="p-4 font-medium text-center">Auditoria Diária</th>
+                        <tr class="bg-gray-800 text-gray-300 text-xs uppercase tracking-wider border-b border-gray-700">
+                            <th class="p-4 font-bold w-12 text-center">Dia</th>
+                            <th class="p-4 font-bold text-center text-pilar1 bg-pilar1/5"><i class="fas fa-book-reader mb-1 block text-lg"></i> Pilar 1 (Carreira)</th>
+                            <th class="p-4 font-bold text-center text-pilar2 bg-pilar2/5"><i class="fas fa-running mb-1 block text-lg"></i> Pilar 2 (Handebol)</th>
+                            <th class="p-4 font-bold text-center text-pilar3 bg-pilar3/5"><i class="fas fa-pen-nib mb-1 block text-lg"></i> Pilar 3 (Conteúdo)</th>
+                            <th class="p-4 font-bold w-1/3">Observações do Dia</th>
                         </tr>
                     </thead>
-                    <tbody id="tracker-body" class="divide-y divide-gray-700/50">
-                        <!-- Rows will be generated by JS -->
+                    <tbody id="tracker-body" class="divide-y divide-gray-700/50 text-sm">
+                        <!-- Linhas geradas via JavaScript -->
                     </tbody>
                 </table>
             </div>
@@ -147,26 +236,26 @@
 
         <!-- Auditoria Semanal -->
         <div class="bg-card p-6 rounded-xl border border-gray-700 shadow-md">
-            <h2 class="text-lg font-bold text-white mb-4 flex items-center">
-                <i class="fas fa-search text-warning mr-3"></i> Auditoria de Fim de Ciclo (Reflexão)
+            <h2 class="text-md font-bold text-white mb-4 flex items-center">
+                <i class="fas fa-search text-gray-400 mr-2"></i> Auditoria Tática (Reflexão)
             </h2>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
                 <div>
-                    <label class="block text-success text-sm font-bold mb-2">Vitória de Ouro (O que funcionou?)</label>
-                    <textarea id="audit-win" class="w-full bg-dark border border-gray-600 rounded-lg p-3 text-gray-200 focus:outline-none focus:border-success focus:ring-1 focus:ring-success resize-none" rows="3" placeholder="Ex: Consegui manter 3 horas líquidas de estudo na terça..."></textarea>
+                    <label class="block text-success text-xs font-bold mb-2 uppercase tracking-wide">A Grande Vitória</label>
+                    <textarea id="audit-win" class="w-full bg-dark border border-gray-600 rounded-lg p-3 text-gray-300 focus:border-success focus:ring-1 focus:ring-success resize-none text-sm" rows="3" placeholder="Qual foi o maior avanço desta semana?"></textarea>
                 </div>
                 <div>
-                    <label class="block text-danger text-sm font-bold mb-2">O Gargalo (Onde falhei?)</label>
-                    <textarea id="audit-fail" class="w-full bg-dark border border-gray-600 rounded-lg p-3 text-gray-200 focus:outline-none focus:border-danger focus:ring-1 focus:ring-danger resize-none" rows="3" placeholder="Ex: Fiquei no telemóvel até tarde, arruinando o sono..."></textarea>
+                    <label class="block text-red-400 text-xs font-bold mb-2 uppercase tracking-wide">O Ponto de Falha</label>
+                    <textarea id="audit-fail" class="w-full bg-dark border border-gray-600 rounded-lg p-3 text-gray-300 focus:border-red-400 focus:ring-1 focus:ring-red-400 resize-none text-sm" rows="3" placeholder="O que prejudicou o seu desempenho?"></textarea>
                 </div>
                 <div>
-                    <label class="block text-accent text-sm font-bold mb-2">Ajuste de Rota (Ação corretiva)</label>
-                    <textarea id="audit-fix" class="w-full bg-dark border border-gray-600 rounded-lg p-3 text-gray-200 focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent resize-none" rows="3" placeholder="Ex: Colocar o carregador do telemóvel noutra divisão..."></textarea>
+                    <label class="block text-accent text-xs font-bold mb-2 uppercase tracking-wide">Plano de Ação</label>
+                    <textarea id="audit-fix" class="w-full bg-dark border border-gray-600 rounded-lg p-3 text-gray-300 focus:border-accent focus:ring-1 focus:ring-accent resize-none text-sm" rows="3" placeholder="O que você vai corrigir para a próxima semana?"></textarea>
                 </div>
             </div>
             <div class="mt-4 flex justify-end">
-                <button onclick="saveAudit()" class="bg-accent hover:bg-blue-600 text-white px-6 py-2 rounded-md font-medium transition shadow-lg">
-                    Guardar Auditoria
+                <button onclick="saveAudit()" class="bg-gray-700 hover:bg-gray-600 text-white px-6 py-2 rounded-lg font-medium transition shadow-md text-sm" id="btn-save-audit">
+                    <i class="fas fa-save mr-1"></i> Salvar Auditoria
                 </button>
             </div>
         </div>
@@ -175,7 +264,8 @@
 
     <script>
         const DAYS_IN_SPRINT = 30;
-        let habitData = JSON.parse(localStorage.getItem('execProtocolData')) || {};
+        const STORAGE_KEY = 'diplomata_v4_data';
+        let habitData = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
 
         function initTracker() {
             const tbody = document.getElementById('tracker-body');
@@ -184,37 +274,32 @@
             for (let i = 1; i <= DAYS_IN_SPRINT; i++) {
                 const dayKey = `day_${i}`;
                 if (!habitData[dayKey]) {
-                    habitData[dayKey] = { study: false, creative: false, workout: false, sleep: false, notes: '' };
+                    habitData[dayKey] = { pilar1: false, pilar2: false, pilar3: false, notes: '' };
                 }
 
                 const tr = document.createElement('tr');
-                tr.className = "hover:bg-gray-800/30 transition-colors";
+                tr.className = "hover:bg-gray-700/20 transition-colors";
                 
                 tr.innerHTML = `
-                    <td class="p-4 text-center font-bold text-gray-400">${i}</td>
-                    <td class="p-4">
-                        <input type="checkbox" class="checkbox-custom mx-auto" 
-                            ${habitData[dayKey].study ? 'checked' : ''} 
-                            onchange="updateData(${i}, 'study', this.checked)">
+                    <td class="p-4 text-center font-bold text-gray-500">${i}</td>
+                    <td class="p-4 text-center bg-pilar1/5">
+                        <input type="checkbox" class="checkbox-custom check-pilar1 mx-auto" 
+                            ${habitData[dayKey].pilar1 ? 'checked' : ''} 
+                            onchange="updateData(${i}, 'pilar1', this.checked)">
+                    </td>
+                    <td class="p-4 text-center bg-pilar2/5">
+                        <input type="checkbox" class="checkbox-custom check-pilar2 mx-auto" 
+                            ${habitData[dayKey].pilar2 ? 'checked' : ''} 
+                            onchange="updateData(${i}, 'pilar2', this.checked)">
+                    </td>
+                    <td class="p-4 text-center bg-pilar3/5">
+                        <input type="checkbox" class="checkbox-custom check-pilar3 mx-auto" 
+                            ${habitData[dayKey].pilar3 ? 'checked' : ''} 
+                            onchange="updateData(${i}, 'pilar3', this.checked)">
                     </td>
                     <td class="p-4">
-                        <input type="checkbox" class="checkbox-custom mx-auto" 
-                            ${habitData[dayKey].creative ? 'checked' : ''} 
-                            onchange="updateData(${i}, 'creative', this.checked)">
-                    </td>
-                    <td class="p-4">
-                        <input type="checkbox" class="checkbox-custom mx-auto" 
-                            ${habitData[dayKey].workout ? 'checked' : ''} 
-                            onchange="updateData(${i}, 'workout', this.checked)">
-                    </td>
-                    <td class="p-4">
-                        <input type="checkbox" class="checkbox-custom mx-auto" 
-                            ${habitData[dayKey].sleep ? 'checked' : ''} 
-                            onchange="updateData(${i}, 'sleep', this.checked)">
-                    </td>
-                    <td class="p-4">
-                        <input type="text" class="w-full bg-transparent border-b border-gray-600 focus:border-accent focus:outline-none text-sm text-gray-300 px-2 py-1 placeholder-gray-600" 
-                            placeholder="Notas curtas..." 
+                        <input type="text" class="w-full bg-transparent border-b border-gray-600/50 focus:border-gray-400 focus:outline-none text-gray-300 px-2 py-1 placeholder-gray-600" 
+                            placeholder="Anotações rápidas..." 
                             value="${habitData[dayKey].notes || ''}"
                             onchange="updateData(${i}, 'notes', this.value)">
                     </td>
@@ -222,52 +307,50 @@
                 tbody.appendChild(tr);
             }
             
-            // Load audit text
-            document.getElementById('audit-win').value = localStorage.getItem('auditWin') || '';
-            document.getElementById('audit-fail').value = localStorage.getItem('auditFail') || '';
-            document.getElementById('audit-fix').value = localStorage.getItem('auditFix') || '';
+            // Carregar auditoria
+            document.getElementById('audit-win').value = localStorage.getItem(STORAGE_KEY + '_win') || '';
+            document.getElementById('audit-fail').value = localStorage.getItem(STORAGE_KEY + '_fail') || '';
+            document.getElementById('audit-fix').value = localStorage.getItem(STORAGE_KEY + '_fix') || '';
 
             calculateStats();
         }
 
         function updateData(day, field, value) {
             habitData[`day_${day}`][field] = value;
-            localStorage.setItem('execProtocolData', JSON.stringify(habitData));
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(habitData));
             if(field !== 'notes') calculateStats();
         }
 
         function saveAudit() {
-            localStorage.setItem('auditWin', document.getElementById('audit-win').value);
-            localStorage.setItem('auditFail', document.getElementById('audit-fail').value);
-            localStorage.setItem('auditFix', document.getElementById('audit-fix').value);
+            localStorage.setItem(STORAGE_KEY + '_win', document.getElementById('audit-win').value);
+            localStorage.setItem(STORAGE_KEY + '_fail', document.getElementById('audit-fail').value);
+            localStorage.setItem(STORAGE_KEY + '_fix', document.getElementById('audit-fix').value);
             
-            // Visual feedback
-            const btn = document.querySelector('button[onclick="saveAudit()"]');
-            const originalText = btn.innerText;
-            btn.innerText = "Guardado!";
-            btn.classList.replace('bg-accent', 'bg-success');
+            const btn = document.getElementById('btn-save-audit');
+            const originalHTML = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-check mr-1"></i> Salvo!';
+            btn.classList.add('bg-success', 'text-white');
             setTimeout(() => {
-                btn.innerText = originalText;
-                btn.classList.replace('bg-success', 'bg-accent');
+                btn.innerHTML = originalHTML;
+                btn.classList.remove('bg-success', 'text-white');
             }, 2000);
         }
 
         function calculateStats() {
-            let studyCount = 0, creativeCount = 0, routineCount = 0;
+            let p1Count = 0, p2Count = 0, p3Count = 0;
             let totalChecks = 0;
-            const maxChecks = DAYS_IN_SPRINT * 4; // 4 habits per day
+            const maxChecks = DAYS_IN_SPRINT * 3; // Exatamente 3 pilares
 
             for (let i = 1; i <= DAYS_IN_SPRINT; i++) {
                 const day = habitData[`day_${i}`];
-                if (day.study) { studyCount++; totalChecks++; }
-                if (day.creative) { creativeCount++; totalChecks++; }
-                if (day.workout) { routineCount += 0.5; totalChecks++; }
-                if (day.sleep) { routineCount += 0.5; totalChecks++; }
+                if (day.pilar1) { p1Count++; totalChecks++; }
+                if (day.pilar2) { p2Count++; totalChecks++; }
+                if (day.pilar3) { p3Count++; totalChecks++; }
             }
 
-            document.getElementById('score-estudos').innerText = studyCount;
-            document.getElementById('score-criativo').innerText = creativeCount;
-            document.getElementById('score-rotina').innerText = Math.floor(routineCount);
+            document.getElementById('score-p1').innerText = p1Count;
+            document.getElementById('score-p2').innerText = p2Count;
+            document.getElementById('score-p3').innerText = p3Count;
 
             const percentage = Math.round((totalChecks / maxChecks) * 100) || 0;
             const scoreTotalEl = document.getElementById('score-total');
@@ -276,28 +359,27 @@
             scoreTotalEl.innerText = `${percentage}%`;
             progressBar.style.width = `${percentage}%`;
 
-            // Color logic based on performance
             scoreTotalEl.className = "text-4xl font-bold transition-colors duration-300 ";
-            progressBar.className = "h-2 rounded-full transition-all duration-500 ";
+            progressBar.className = "h-full transition-all duration-500 rounded-full ";
             
             if (percentage >= 85) {
                 scoreTotalEl.classList.add('text-success');
                 progressBar.classList.add('bg-success');
-            } else if (percentage >= 70) {
-                scoreTotalEl.classList.add('text-warning');
-                progressBar.classList.add('bg-warning');
+            } else if (percentage >= 65) {
+                scoreTotalEl.classList.add('text-yellow-400');
+                progressBar.classList.add('bg-yellow-400');
             } else {
-                scoreTotalEl.classList.add('text-danger');
-                progressBar.classList.add('bg-danger');
+                scoreTotalEl.classList.add('text-red-400');
+                progressBar.classList.add('bg-red-400');
             }
         }
 
         function clearData() {
-            if(confirm("Tem a certeza que deseja apagar todos os dados deste sprint? Esta ação não pode ser desfeita.")) {
-                localStorage.removeItem('execProtocolData');
-                localStorage.removeItem('auditWin');
-                localStorage.removeItem('auditFail');
-                localStorage.removeItem('auditFix');
+            if(confirm("Iniciar novo ciclo de 30 dias? Todos os dados atuais serão apagados permanentemente.")) {
+                localStorage.removeItem(STORAGE_KEY);
+                localStorage.removeItem(STORAGE_KEY + '_win');
+                localStorage.removeItem(STORAGE_KEY + '_fail');
+                localStorage.removeItem(STORAGE_KEY + '_fix');
                 habitData = {};
                 initTracker();
             }
@@ -305,16 +387,15 @@
 
         function exportCSV() {
             let csvContent = "data:text/csv;charset=utf-8,";
-            csvContent += "Dia,Estudo,Criativo,Treino,Sono,Notas\n";
+            csvContent += "Dia,Pilar 1 (Carreira),Pilar 2 (Handebol),Pilar 3 (Conteudo),Anotacoes\n";
             
             for (let i = 1; i <= DAYS_IN_SPRINT; i++) {
                 const day = habitData[`day_${i}`];
                 const row = [
                     i,
-                    day.study ? "1" : "0",
-                    day.creative ? "1" : "0",
-                    day.workout ? "1" : "0",
-                    day.sleep ? "1" : "0",
+                    day.pilar1 ? "1" : "0",
+                    day.pilar2 ? "1" : "0",
+                    day.pilar3 ? "1" : "0",
                     `"${(day.notes || '').replace(/"/g, '""')}"`
                 ].join(",");
                 csvContent += row + "\n";
@@ -323,16 +404,27 @@
             const encodedUri = encodeURI(csvContent);
             const link = document.createElement("a");
             link.setAttribute("href", encodedUri);
-            link.setAttribute("download", "protocolo_execucao_sprint.csv");
+            link.setAttribute("download", "protocolo_diplomata_v4.csv");
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
         }
 
-        // Initialize on load
+        function toggleRoutine() {
+            const content = document.getElementById('routine-content');
+            const icon = document.getElementById('routine-icon');
+            if (content.classList.contains('hidden')) {
+                content.classList.remove('hidden');
+                icon.classList.add('rotate-180');
+            } else {
+                content.classList.add('hidden');
+                icon.classList.remove('rotate-180');
+            }
+        }
+
+        // Inicializar aplicação
         window.onload = initTracker;
     </script>
 </body>
 </html>
 
-  
